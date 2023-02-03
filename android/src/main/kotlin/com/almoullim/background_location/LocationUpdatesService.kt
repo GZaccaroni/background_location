@@ -108,9 +108,11 @@ class LocationUpdatesService : Service() {
             mFusedLocationClient = LocationServices.getFusedLocationProviderClient(this)
             
             mFusedLocationCallback = object : LocationCallback() {
-                override fun onLocationResult(locationResult: LocationResult?) {
+                override fun onLocationResult(locationResult: LocationResult) {
                     super.onLocationResult(locationResult)
-                    onNewLocation(locationResult!!.lastLocation)
+                    locationResult.lastLocation?.let {
+                        onNewLocation(it)
+                    }
                 }
             }
         } else {
@@ -156,8 +158,12 @@ class LocationUpdatesService : Service() {
         Utils.setRequestingLocationUpdates(this, true)
         try {
             if (isGoogleApiAvailable && !this.forceLocationManager) {
-                mFusedLocationClient!!.requestLocationUpdates(mLocationRequest,
-                    mFusedLocationCallback!!, Looper.myLooper())
+                mLocationRequest?.let {
+                    mFusedLocationClient!!.requestLocationUpdates(
+                        it,
+                        mFusedLocationCallback!!, Looper.myLooper()
+                    )
+                }
             } else {
                 mLocationManager?.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0L, 0f, mLocationManagerCallback!!)
             }
@@ -194,7 +200,7 @@ class LocationUpdatesService : Service() {
             } else {
                 mLocation = mLocationManager!!.getLastKnownLocation(LocationManager.GPS_PROVIDER)
             }
-        } catch (unlikely: SecurityException) {
+        } catch (_: SecurityException) {
         }
     }
 
@@ -207,11 +213,10 @@ class LocationUpdatesService : Service() {
 
 
     private fun createLocationRequest(distanceFilter: Double) {
-        mLocationRequest = LocationRequest()
-        mLocationRequest!!.interval = UPDATE_INTERVAL_IN_MILLISECONDS
-        mLocationRequest!!.fastestInterval = FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS
-        mLocationRequest!!.priority = LocationRequest.PRIORITY_HIGH_ACCURACY
-        mLocationRequest!!.smallestDisplacement = distanceFilter.toFloat()
+        mLocationRequest = LocationRequest.Builder(Priority.PRIORITY_HIGH_ACCURACY, UPDATE_INTERVAL_IN_MILLISECONDS)
+            .setMinUpdateDistanceMeters(distanceFilter.toFloat())
+            .setMinUpdateIntervalMillis(FASTEST_UPDATE_INTERVAL_IN_MILLISECONDS)
+            .build()
     }
 
 

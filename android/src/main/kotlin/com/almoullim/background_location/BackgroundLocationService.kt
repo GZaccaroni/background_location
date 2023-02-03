@@ -11,7 +11,6 @@ import android.location.Location
 import android.os.IBinder
 import android.util.Log
 import android.widget.Toast
-import androidx.annotation.NonNull
 import androidx.core.app.ActivityCompat
 import androidx.localbroadcastmanager.content.LocalBroadcastManager
 import io.flutter.embedding.engine.plugins.activity.ActivityPluginBinding
@@ -69,7 +68,7 @@ class BackgroundLocationService: MethodChannel.MethodCallHandler, PluginRegistry
         }
     }
 
-    fun onAttachedToEngine(@NonNull context: Context, @NonNull messenger: BinaryMessenger) {
+    fun onAttachedToEngine(context: Context, messenger: BinaryMessenger) {
         this.context = context
         isAttached = true
         channel = MethodChannel(messenger, METHOD_CHANNEL_NAME)
@@ -147,7 +146,7 @@ class BackgroundLocationService: MethodChannel.MethodCallHandler, PluginRegistry
         return 0
     }
 
-    override fun onMethodCall(@NonNull call: MethodCall, @NonNull result: MethodChannel.Result) {
+    override fun onMethodCall(call: MethodCall, result: MethodChannel.Result) {
         when (call.method) {
             "stop_location_service" -> result.success(stopLocationService())
             "start_location_service" -> result.success(startLocationService(call.argument("distance_filter"), call.argument("force_location_manager")))
@@ -225,7 +224,7 @@ override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out
         Log.i(BackgroundLocationPlugin.TAG, "onRequestPermissionResult")
         if (requestCode == REQUEST_PERMISSIONS_REQUEST_CODE) {
             when {
-                grantResults!!.isEmpty() -> Log.i(BackgroundLocationPlugin.TAG, "User interaction was cancelled.")
+                grantResults.isEmpty() -> Log.i(BackgroundLocationPlugin.TAG, "User interaction was cancelled.")
                 grantResults[0] == PackageManager.PERMISSION_GRANTED -> service?.requestLocationUpdates()
                 else -> Toast.makeText(context, R.string.permission_denied_explanation, Toast.LENGTH_LONG).show()
             }
